@@ -49,7 +49,7 @@ elif selected_orga_list == "Tous":
         df_final = df[df['Réparation'] == True]
 elif selected_orga_list == "Associatif":
     # Filtrage par type d'organisation et éventuellement par type de service
-    df_final = df[df['Association'] == True]
+    df_final = df[df['Type entreprise'] == 'Association']
     
     if selected_type_service != "Tous":
         if selected_type_service == "Ventes":
@@ -85,9 +85,9 @@ with tab1:
             "Ville": True,
             "Téléphone": True,
             "Mail": True,
-            "Site internet": True,
             "latitude": False,
             "longitude": False,
+            "Site Web": df_final['Site internet'].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>'),
         },
         zoom=10,
         ).update_traces(marker={"size": 10})
@@ -120,24 +120,21 @@ with tab2:
     labels = ['Mécanique', 'Électrique (AE)']
     sizes = [somme_mecanique, somme_vae]
 
-    plt.figure(figsize=(4, 4))
+    plt.figure(figsize=(2, 2))
     plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=250)
-    plt.axis('equal')  # Assurez-vous que le diagramme est un cercle
-    plt.title('Répartition des services entre les vélos électrique et mécanique')  # Titre du diagramme
-    plt.legend()  # Légende basée sur les labels
+    plt.title('      Electrique vs Mécanique      ')
+    plt.legend(fontsize='xx-small', markerscale=0.1, loc='upper left')
     st.pyplot(plt.gcf())
 
-    # Création du diagramme camembert pour la répartition des types d'organismes
+    # Création du diagramme camembert 2
     labels = ['Associatif', 'Non-Associatif']
     sizes = [
-        df[df['Association'] == True].shape[0],  # Nombre d'organismes associatifs
-        df[df['Association'] == null].shape[0]  # Nombre d'organismes non-associatifs
+        df[df['Type entreprise'] == 'Association'].shape[0],  # Nombre d'organismes associatifs
+        df[df['Type entreprise'] == 'Entreprise'].shape[0]  # Nombre d'organismes non-associatifs
     ]
 
-    plt.figure(figsize=(4, 4))
-    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=250)
-    plt.axis('equal')  # Assurez-vous que le diagramme est un cercle
-    plt.title("Répartition Types d'organismes")  # Titre du diagramme
-    plt.legend()  # Légende basée sur les labels
-
+    plt.figure(figsize=(2, 2))
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%', colors = ['green','red'], startangle=150)
+    plt.title('          Type d organisme         ')
+    plt.legend(fontsize='xx-small', markerscale=0.1, loc='upper left')
     st.pyplot(plt.gcf())
