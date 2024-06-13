@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 from pathlib import Path
+import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -114,12 +115,29 @@ with tab2:
                     'Location Classique VAE', 
                     'Location Pliant AE', 
                     'Location Cargo AE']].sum().sum()
-    
-    fig = go.Figure(data=[go.Table(
-    header=dict(values=['Catégorie', 'Somme']),
-    cells=dict(values=[['Mécanique', 'Électrique (AE)'],
-                       [somme_mecanique, somme_vae]])
-    )])
 
-    fig.update_layout(title='Répartition des services entre les vélos éléctrique et mécanique')
-    st.plotly_chart(fig)
+    # Création du diagramme camembert 1
+    labels = ['Mécanique', 'Électrique (AE)']
+    sizes = [somme_mecanique, somme_vae]
+
+    plt.figure(figsize=(4, 4))
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=250)
+    plt.axis('equal')  # Assurez-vous que le diagramme est un cercle
+    plt.title('Répartition des services entre les vélos électrique et mécanique')  # Titre du diagramme
+    plt.legend()  # Légende basée sur les labels
+    st.pyplot(plt.gcf())
+
+    # Création du diagramme camembert pour la répartition des types d'organismes
+    labels = ['Associatif', 'Non-Associatif']
+    sizes = [
+        df[df['Association'] == True].shape[0],  # Nombre d'organismes associatifs
+        df[df['Association'] == null].shape[0]  # Nombre d'organismes non-associatifs
+    ]
+
+    plt.figure(figsize=(4, 4))
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=250)
+    plt.axis('equal')  # Assurez-vous que le diagramme est un cercle
+    plt.title("Répartition Types d'organismes")  # Titre du diagramme
+    plt.legend()  # Légende basée sur les labels
+
+    st.pyplot(plt.gcf())
