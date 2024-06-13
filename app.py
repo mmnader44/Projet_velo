@@ -64,9 +64,9 @@ with tab1:
             "latitude": False,
             "longitude": False,
         },
-        zoom=10,)
+        zoom=10,).update_traces(marker={"size": 10})
     fig.update_layout(
-        mapbox_style="carto-positron", width=800, height=650, showlegend=False
+        mapbox_style="carto-positron", width=1000, height=650, showlegend=False
     )
 
         # Afficher la figure dans Streamlit
