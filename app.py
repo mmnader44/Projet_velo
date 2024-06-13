@@ -3,6 +3,8 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 import plotly.express as px
+import plotly.graph_objects as go
+
 
 # memoire session_state
 if "df" not in st.session_state:
@@ -62,21 +64,41 @@ with tab1:
             "latitude": False,
             "longitude": False,
         },
-        zoom=10,)
+        zoom=10,).update_traces(marker={"size": 10})
     fig.update_layout(
-        mapbox_style="carto-positron", width=800, height=650, showlegend=False
+        mapbox_style="carto-positron", width=1000, height=650, showlegend=False
     )
 
         # Afficher la figure dans Streamlit
     st.plotly_chart(fig)
+
 with tab2:
     st.markdown(
     "<h2 style='color: black ; text-align: center;'>Services lié au Vélo</h2>",
     unsafe_allow_html=True,
     )
-    df_count = df['Code postal'].value_counts().reset_index()
-    df_count.columns = ['Code postal', 'Nombre']
-    fig = px.bar(df_count, x='Code postal', y='Nombre', title='Nombre de valeurs par Code postal')
 
-    # Afficher le graphique
+    # Sommes pour Mécanique
+    somme_mecanique = df[['Vente de vélos neufs Classique Mécanique', 
+                        'Vente de vélos neufs Pliant Mécanique', 
+                        'Vente de vélos neufs Cargo Mécanique', 
+                        'Location Classique Mécanique',
+                        'Location Pliant Mécanique', 
+                        'Location Cargo Mécanique']].sum().sum()
+
+    # Sommes pour Électrique (VAE/AE)
+    somme_vae = df[['Vente de vélos neufs Classique VAE', 
+                    'Vente de vélos neufs Pliant AE', 
+                    'Vente de vélos neufs Cargo AE', 
+                    'Location Classique VAE', 
+                    'Location Pliant AE', 
+                    'Location Cargo AE']].sum().sum()
+    
+    fig = go.Figure(data=[go.Table(
+    header=dict(values=['Catégorie', 'Somme']),
+    cells=dict(values=[['Mécanique', 'Électrique (AE)'],
+                       [somme_mecanique, somme_vae]])
+    )])
+
+    fig.update_layout(title='Répartition des services entre les vélos éléctrique et mécanique')
     st.plotly_chart(fig)
