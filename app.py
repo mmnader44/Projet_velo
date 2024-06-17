@@ -16,6 +16,9 @@ if "df" not in st.session_state:
 else:
     df = st.session_state["df"]
 
+# Fill NaN values with 0
+df = df.fillna(0)
+
 # Configuration initiale
 st.set_page_config(
     page_title="Main page", layout="wide", initial_sidebar_state="expanded"
@@ -24,11 +27,12 @@ st.set_page_config(
 #________________Sidebar_______________
 # Filtre dans la sidebar pour le type d'organisation et type de service
 with st.sidebar:
+
     st.write("Quels services cherchez-vous ?")
 
     # Filtre associatif
     with st.expander("Type d'organisation :"):
-        orga_list = ['Tous', 'Associatif']
+        orga_list = ['Tous', 'Associatif', 'Entreprise']
         selected_orga_list = st.radio('Sélectionnez votre modèle :', orga_list)
 
     # Sélection du type de service
@@ -38,7 +42,9 @@ with st.sidebar:
 
 # Filtrage du dataframe en fonction des choix faits dans la sidebar
 if selected_orga_list == "Tous" and selected_type_service == "Tous":
+
     df_final = df  # Aucun filtrage appliqué
+
 elif selected_orga_list == "Tous":
     # Filtrage uniquement par type de service
     if selected_type_service == "Ventes":
@@ -47,10 +53,25 @@ elif selected_orga_list == "Tous":
         df_final = df[df['Location'] == True]
     elif selected_type_service == "Réparation":
         df_final = df[df['Réparation'] == True]
+
 elif selected_orga_list == "Associatif":
+
     # Filtrage par type d'organisation et éventuellement par type de service
     df_final = df[df['Type entreprise'] == 'Association']
-    
+
+    if selected_type_service != "Tous":
+        if selected_type_service == "Ventes":
+            df_final = df_final[df_final['Ventes'] == True]
+        elif selected_type_service == "Location":
+            df_final = df_final[df_final['Location'] == True]
+        elif selected_type_service == "Réparation":
+            df_final = df_final[df_final['Réparation'] == True]
+
+elif selected_orga_list == "Entreprise":
+
+    # Filtrage par type d'organisation "Entreprise" et éventuellement par type de service
+    df_final = df[df['Type entreprise'] == 'Entreprise']
+
     if selected_type_service != "Tous":
         if selected_type_service == "Ventes":
             df_final = df_final[df_final['Ventes'] == True]
@@ -65,7 +86,7 @@ else:
 #______________________Carte_____________________
 
 st.markdown(
-"<h2 style='color: black ; text-align: center;'>Nantes Bike Map : Localisation des Services Vélo</h2>",
+"<h1 style='color: black ; text-align: center;'>Nantes Bike Map : Localisation des Services Vélo</h1>",
 unsafe_allow_html=True,
 )
 
@@ -100,41 +121,46 @@ with tab1:
 
 with tab2:
 
-    # Sommes pour Mécanique
-    somme_mecanique = df[['Vente de vélos neufs Classique Mécanique', 
-                        'Vente de vélos neufs Pliant Mécanique', 
-                        'Vente de vélos neufs Cargo Mécanique', 
-                        'Location Classique Mécanique',
-                        'Location Pliant Mécanique', 
-                        'Location Cargo Mécanique']].sum().sum()
+    col1, col2 = st.columns(2)
 
-    # Sommes pour Électrique (VAE/AE)
-    somme_vae = df[['Vente de vélos neufs Classique VAE', 
-                    'Vente de vélos neufs Pliant AE', 
-                    'Vente de vélos neufs Cargo AE', 
-                    'Location Classique VAE', 
-                    'Location Pliant AE', 
-                    'Location Cargo AE']].sum().sum()
+    with col1:
+        # Sommes pour Mécanique
+        somme_mecanique = df_final[['Vente de vélos neufs Classique Mécanique', 
+                            'Vente de vélos neufs Pliant Mécanique', 
+                            'Vente de vélos neufs Cargo Mécanique', 
+                            'Location Classique Mécanique',
+                            'Location Pliant Mécanique', 
+                            'Location Cargo Mécanique']].sum().sum()
 
-    # Création du diagramme camembert 1
-    labels = ['Mécanique', 'Électrique (AE)']
-    sizes = [somme_mecanique, somme_vae]
+        # Sommes pour Électrique (VAE/AE)
+        somme_vae = df_final[['Vente de vélos neufs Classique VAE', 
+                        'Vente de vélos neufs Pliant AE', 
+                        'Vente de vélos neufs Cargo AE', 
+                        'Location Classique VAE', 
+                        'Location Pliant AE', 
+                        'Location Cargo AE']].sum().sum()
 
-    plt.figure(figsize=(2, 2))
-    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=250)
-    plt.title('      Electrique vs Mécanique      ')
-    plt.legend(fontsize='xx-small', markerscale=0.1, loc='upper left')
-    st.pyplot(plt.gcf())
+        # Création du diagramme camembert 1
+        labels = ['Mécanique', 'Électrique (AE)']
+        sizes = [somme_mecanique, somme_vae]
 
-    # Création du diagramme camembert 2
-    labels = ['Associatif', 'Non-Associatif']
-    sizes = [
-        df[df['Type entreprise'] == 'Association'].shape[0],  # Nombre d'organismes associatifs
-        df[df['Type entreprise'] == 'Entreprise'].shape[0]  # Nombre d'organismes non-associatifs
-    ]
+        plt.figure(figsize=(2, 2))
+        plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=250)
+        plt.title('      Electrique vs Mécanique      ')
+        plt.legend(fontsize='xx-small', markerscale=0.1, loc='upper left')
+        st.pyplot(plt.gcf())
 
-    plt.figure(figsize=(2, 2))
-    plt.pie(sizes, labels=labels, autopct='%1.1f%%', colors = ['green','red'], startangle=150)
-    plt.title('          Type d organisme         ')
-    plt.legend(fontsize='xx-small', markerscale=0.1, loc='upper left')
-    st.pyplot(plt.gcf())
+    with col2:
+
+        # Création du diagramme camembert 2
+        labels = ['Associatif', 'Non-Associatif']
+        sizes = [
+            df_final[df_final['Type entreprise'] == 'Association'].shape[0],  # Nombre d'organismes associatifs
+            df_final[df_final['Type entreprise'] == 'Entreprise'].shape[0]  # Nombre d'organismes non-associatifs
+        ]
+
+        plt.figure(figsize=(2, 2))
+        plt.pie(sizes, labels=labels, autopct='%1.1f%%', colors = ['green','red'], startangle=150)
+        plt.title("          Type d'organisme         ")
+        plt.legend(fontsize='xx-small', markerscale=0.1, loc='upper left')
+        st.pyplot(plt.gcf())
